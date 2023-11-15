@@ -8,41 +8,43 @@ public class CircuitCalculator {
 			return;
 		}
 
-		double a = Double.parseDouble(args[0]); // resistance1 (ohms)
-		double b = Double.parseDouble(args[1]); // resistance2 (ohms)
-		double c = Double.parseDouble(args[2]); // capacitance1 (farads)
-		double d = Double.parseDouble(args[3]); // capacitance2 (farads)
+		double resistance1 = Double.parseDouble(args[0]); // resistance1 (ohms)
+		double resistance2 = Double.parseDouble(args[1]); // resistance2 (ohms)
+		double capacitance1 = Double.parseDouble(args[2]); // capacitance1 (farads)
+		double capacitance2 = Double.parseDouble(args[3]); // capacitance2 (farads)
 
-//		if (!isValidResistance(a) || !isValidResistance(b) || !isValidCapacitance(c) || !isValidCapacitance(d)) {
+//		if (!isValidResistance(resistance1) || !isValidResistance(resistance2) || !isValidCapacitance(capacitance1) || !isValidCapacitance(capacitance2)) {
 //			System.out.println("Invalid input values. Please check the input ranges.");
 //			return;
 //		}
 
-		double e = func1(a, b); // equivalent parallel resistance (ohms)
-		double f = func2(a, b, c, e); // equivalent series capacitance (farads)
-		double g = func3(a, c, d, f); // total impedance (ohms)
+		double equivalentParallelResistance = calculateEquivalentParallelResistance(resistance1, resistance2);
+		double equivalentSeriesCapacitance = calculateEquivalentSeriesCapacitance(resistance1, resistance2,
+				capacitance1, equivalentParallelResistance);
+		double totalImpedance = calculateTotalImpedance(resistance1, capacitance1, capacitance2,
+				equivalentSeriesCapacitance);
 
-		g = Math.round(g * 100) * 1.0 / 100;
-		System.out.println(g);
+		totalImpedance = Math.round(totalImpedance * 100) * 1.0 / 100;
+		System.out.println(totalImpedance);
 	}
 
 	// Calculate equivalent parallel resistance
-	public static double func1(double resistance1, double resistance2) {
+	public static double calculateEquivalentParallelResistance(double resistance1, double resistance2) {
 		return (resistance1 * resistance2) / (resistance1 + resistance2);
 	}
 
 	// Calculate equivalent series capacitance
-	public static double func2(double resistance1, double resistance2, double capacitance1,
-			double equivalentResistance) {
-		double capacitance2 = capacitance1 * (resistance1 / (resistance1 + resistance2));
+	public static double calculateEquivalentSeriesCapacitance(double resistance1, double resistance2,
+			double capacitance1, double equivalentResistance) {
+		double adjustedCapacitance2 = capacitance1 * (resistance1 / (resistance1 + resistance2));
 		capacitance1 = capacitance1 * equivalentResistance;
 		capacitance1 %= 1e4;
-		capacitance2 %= 1e4;
-		return capacitance1 + capacitance2;
+		adjustedCapacitance2 %= 1e4;
+		return capacitance1 + adjustedCapacitance2;
 	}
 
 	// Calculate total impedance
-	public static double func3(double resistance1, double capacitance1, double capacitance2,
+	public static double calculateTotalImpedance(double resistance1, double capacitance1, double capacitance2,
 			double equivalentCapacitance) {
 		double angularFrequency = 2 * Math.PI * 50; // assuming a frequency of 50 Hz
 		double capacitiveReactance = 100000 / (angularFrequency * equivalentCapacitance);
